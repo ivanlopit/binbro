@@ -2,13 +2,15 @@
 #include <array>
 #include <vector>
 
-#include "hashapi.h"
+#include "fileutils.h"
 #include "md5.h"
 
 namespace incr4k
 {
 rc
-hash_api::calculate(const std::filesystem::path& path, std::string& checksum, size_t block_size)
+fileutils::calculate_md5(const std::filesystem::path& path,
+                         std::string& checksum,
+                         size_t block_size)
 {
     MD5_CTX ctx;
     MD5Init(ctx);
@@ -33,9 +35,9 @@ hash_api::calculate(const std::filesystem::path& path, std::string& checksum, si
 }
 
 rc
-hash_api::compare_files(const std::filesystem::path& l,
-                        const std::filesystem::path& r,
-                        size_t block_size)
+fileutils::compare_files(const std::filesystem::path& l,
+                         const std::filesystem::path& r,
+                         size_t block_size)
 {
     std::error_code ec;
     size_t l_size = std::filesystem::file_size(l);

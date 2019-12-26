@@ -1,6 +1,6 @@
 #include "binbro/binbro.h"
 
-#include "hashapi.h"
+#include "fileutils.h"
 #include <iostream>
 #include <future>
 #include <map>
@@ -11,10 +11,9 @@
 namespace incr4k
 {
 rc
-binbro::run(const std::filesystem::path& path,
-            std::vector<std::vector<std::filesystem::path>>& same_files_groups)
+binbro::run(const std::filesystem::path& path, GroupedFiles& same_files_groups)
 {
-    if (!std::filesystem::is_directory(path))
+    if (std::filesystem::is_symlink(path) || !std::filesystem::is_directory(path))
     {
         return rc::not_a_dir;
     }
@@ -31,10 +30,10 @@ binbro::run(const std::filesystem::path& path,
             auto handle = std::async(
                 std::launch::async,
                 [](std::filesystem::path path) -> file_context {
-                    std::string checksum;
-
-                    auto rc = hash_api::calculate(path, checksum);
-                    return file_context{std::move(path), std::move(checksum), rc};
+                    file_context ctx;
+                    ctx.path = path;
+                    ctx.status = fileutils::calculate_md5(path, ctx.checksum);
+                    return ctx;
                 },
                 std::filesystem::absolute(*itr));
 
@@ -61,12 +60,12 @@ binbro::run(const std::filesystem::path& path,
         {
             std::map<std::filesystem::path, std::vector<std::filesystem::path>, file_less> same;
 
-            for (auto& f : f.second)
+            for (const auto& f : f.second)
             {
                 same[f.path].push_back(f.path);
             }
 
-            for (auto& u : same)
+            for (const auto& u : same)
             {
                 same_files_groups.emplace_back();
                 auto& last_group = same_files_groups.back();
@@ -81,7 +80,7 @@ binbro::run(const std::filesystem::path& path,
 bool
 binbro::file_less::operator()(const std::filesystem::path& l, const std::filesystem::path& r) const
 {
-    auto res = hash_api::compare_files(l, r);
+    auto res = fileutils::compare_files(l, r);
 
     if (res == rc::failed)
     {

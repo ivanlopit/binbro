@@ -4,10 +4,10 @@ set(binbro_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/include/binbro/binbro.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/binbro/rc.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/binbro.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/hashapi.h
+	${CMAKE_CURRENT_SOURCE_DIR}/src/fileutils.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/md5.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/md5.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/hashapi.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/fileutils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/rc.cpp)
 
 add_library(binbro STATIC ${binbro_SRC})

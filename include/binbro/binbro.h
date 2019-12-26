@@ -22,8 +22,9 @@ class binbro
     };
 
 public:
-    rc run(const std::filesystem::path& path,
-           std::vector<std::vector<std::filesystem::path>>& same_files_groups);
+    using GroupedFiles = std::vector<std::vector<std::filesystem::path>>;
+
+    rc run(const std::filesystem::path& path, GroupedFiles& same_files_groups);
 };
 
 }  // namespace incr4k
