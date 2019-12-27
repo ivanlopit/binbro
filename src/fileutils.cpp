@@ -1,3 +1,21 @@
+/******************************************************************************
+
+Copyright 2019 Lopit Ivan, lopit.i.i@gmail.com
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+******************************************************************************/
+
 #include <filesystem>
 #include <array>
 #include <vector>
@@ -31,18 +49,19 @@ fileutils::calculate_md5(const std::filesystem::path& path,
 
     checksum = MD5Final(ctx);
 
+    fclose(handle);
+
     return rc::ok;
 }
 
 rc
 fileutils::compare_files(const std::filesystem::path& l,
+                         size_t l_size,
                          const std::filesystem::path& r,
+                         size_t r_size,
                          size_t block_size)
 {
-    std::error_code ec;
-    size_t l_size = std::filesystem::file_size(l);
-    size_t r_size = std::filesystem::file_size(r);
-
+    // TODO, RAII for handles
     if (l_size != r_size)
     {
         return l_size < r_size ? rc::less : rc::greater;
@@ -57,6 +76,7 @@ fileutils::compare_files(const std::filesystem::path& l,
     auto rh = fopen(r.u8string().c_str(), "rb");
     if (!rh)
     {
+        fclose(lh);
         return rc::failed;
     }
 
@@ -73,6 +93,9 @@ fileutils::compare_files(const std::filesystem::path& l,
         // expected that files with the same files return same fread object count
         if (lreaded != rreaded)
         {
+            fclose(lh);
+            fclose(rh);
+
             return rc::failed;
         }
 
@@ -80,10 +103,15 @@ fileutils::compare_files(const std::filesystem::path& l,
 
         if (res != 0)
         {
+            fclose(lh);
+            fclose(rh);
+
             return res > 0 ? rc::less : rc::greater;
         }
     } while (lreaded > 0 && rreaded > 0);
 
+    fclose(lh);
+    fclose(rh);
     return rc::same;
 }
 
